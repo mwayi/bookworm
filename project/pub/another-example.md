@@ -1,9 +1,8 @@
-#### Project Title
+# Project Title
 
 
 -------------
 
-         - [Project Title](#project-title) 
  - [Getting Started](#getting-started) 
      - [Prerequisites](#prerequisites) 
      - [Installing](#installing) 
