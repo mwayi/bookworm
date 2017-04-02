@@ -1,0 +1,33 @@
+#!/usr/bin/env php
+<?php
+
+if (file_exists(__DIR__ . '/../../autoload.php')) {
+    require __DIR__ . '/../../autoload.php';
+} else {
+    require __DIR__ . '/vendor/autoload.php';
+}
+
+$app = new Symfony\Component\Console\Application;
+$arg = new Symfony\Component\Console\Input\ArgvInput;
+
+if('publish' === $arg->getFirstArgument()) {
+	$app->add(new Smrtr\Bookworm\PublishCommand);
+	$app->run();
+	return;
+}
+
+if('new' === $arg->getFirstArgument()) {
+	$app->add(new Smrtr\Bookworm\NewCommand);
+	$app->run();
+	return;
+}
+
+$output = new Symfony\Component\Console\Output\ConsoleOutput;
+$output->writeln('
+<fg=red;options=bold>No mode selected.</>
+
+<comment>Please choose from the following modes:</comment>
+  bookworm publish          Publish the documentation 
+  bookworm new <filePath>   Where to publish the documentation
+');
+

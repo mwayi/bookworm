@@ -1,0 +1,25 @@
+{
+    "name": "mwayi/bookworm",
+    "description": "A light weight markdown documentation generator",
+    "keywords": ["Markdown", "Generator", "Documentaion"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mwayi Dzanjalimodzi",
+            "email": "mwayi@smrtr.co.uk"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Smrtr\\Bookworm\\": "src/"
+        }
+    },
+    "require": {
+        "symfony/console": "~2.3|~3.0",
+        "illuminate/filesystem": "^5.3",
+        "illuminate/support": "^5.3"
+    },
+    "bin": [
+        "bookworm"
+    ]
+}
