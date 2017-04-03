@@ -3,6 +3,7 @@
 namespace Smrtr\Bookworm;
 
 use RuntimeException;
+use Smrtr\Bookworm\DocumentStore\FilesDocumentStore;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
@@ -21,7 +22,8 @@ class PublishCommand extends Command
 		$this
 			->setName('publish')
 			->setDescription('Publish markdown documentation')
-			->addArgument('src',  InputArgument::REQUIRED, 'The project root');
+			->addArgument('src',  InputArgument::REQUIRED, 'The project root')
+        ;
 	}
 
 	/**
@@ -32,10 +34,9 @@ class PublishCommand extends Command
 	 * @return void
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output)
-	{	
-		new DocumentManager(
-			new Config($input->getArgument('src'))
-		);
+    {
+        $config = new Config($input->getArgument('src'));
+        new Publish($config);
 
 		$output->writeln('<comment>Documentation published</comment>');
 	}

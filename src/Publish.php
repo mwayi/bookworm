@@ -4,67 +4,55 @@ namespace Smrtr\Bookworm;
 
 use RuntimeException;
 use Illuminate\Filesystem\Filesystem as File;
+use Smrtr\Bookworm\DocumentStore\DocumentStoreInterface;
+use Smrtr\Bookworm\Renderer\ContentsPage;
+use Smrtr\Bookworm\Renderer\MarkdownPage;
 
 class Publish
 {
 	/**
-	 * @var array $file 
+	 * @var DocumentStoreInterface $documentStore
 	 */
-	protected $files = [];
+	protected $documentStore;
 
 	/**
 	 * @var array $file 
 	 */
 	protected $contents = [];
 
-	/**
-	 * Constructor.
-	 *
-	 * @return void
-	 */
-	public function __construct(DocumentManager $documentManager)
+    /**
+     * Publish constructor.
+     *
+     * @param Config $config
+     */
+	public function __construct(Config $config)
 	{	
-		$this->documents = $documentManager->getDocuments();
-
-		$this->contents = new Contents($this->documents);
+		$this->config = $config;
 
 		$this->makeFiles();
 	}
 
-
-	/**
-	 * Constructor.
-	 *
-	 * @return void
-	 */
+    /**
+     * @return void
+     */
 	public function makeFiles()
-	{	
-		foreach($this->documents as $id => $document) {
+	{
+		foreach($this->config->getDocumentStore()->getDocuments() as $id => $document) {
 
-			$dst = $document->getDestinationPath();
-			if(($dir = dirname($dst)) && !is_dir($dir)) {
-				(new File)->makeDirectory($dir, 0755, true);
+			$destinationPath = $this->config->getPublishedDirectory().$document->getSlug();
+
+			if (($destinationDirectory = dirname($destinationPath)) && !is_dir($destinationDirectory)) {
+				(new File)->makeDirectory($destinationDirectory, 0755, true);
 			}
 
-			if($document->isContentsPage()) {
-				$contents = $document->contents(); 
-				$title = $document->name(); 
-
-				$section = null;
-				if($document->isFrontPage()) {
-					$section = $this->contents->getSection();
-				}else {
-					$section = $this->contents->getSection($document->id());
-				}
-
-				$index = $this->contents->getMarkdown($section);
-
-				$contents = "# $title\n" . $contents . "\n--------------\n" . $index;
-
-				$document->setContents($contents);
-			}
-
-			(new File)->put($dst, $document->contents());
+			if ($document->isContentsPage()) {
+			    $contentsPageRenderer = new ContentsPage();
+                $contentsPageRenderer->render($this->config, $document, $destinationPath);
+			} else {
+			    $markdownPageRenderer = new MarkdownPage();
+                $markdownPageRenderer->render($document, $destinationPath);
+//                (new File)->put($destinationPath, $document->getContent());
+            }
 		}
 	}
 }
