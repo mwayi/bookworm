@@ -27,7 +27,7 @@ class ContentsPage
 
         $sectionContents = $this->getMarkdown($sectionDocuments, $config, $destinationPath);
 
-        $content = "# $title\n" . $content . "\n--------------\n" . $sectionContents;
+        $content = "# $title\n" . $content . "\n\n--------------\n" . $sectionContents;
 
         (new Filesystem)->put($destinationPath, $content);
     }

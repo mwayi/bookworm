@@ -51,7 +51,6 @@ class Publish
 			} else {
 			    $markdownPageRenderer = new MarkdownPage();
                 $markdownPageRenderer->render($document, $destinationPath);
-//                (new File)->put($destinationPath, $document->getContent());
             }
 		}
 	}
