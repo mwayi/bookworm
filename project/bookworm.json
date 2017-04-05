@@ -1,7 +1,10 @@
 {
+	"documents": {
+		"store": "files",
+		"src": "src"
+	},
 	"front-page": "README.md",
-	"src": "src",
 	"published": "pub",
 	"templates": "templates",
-	"base-url": "https://github.com/mwayi/bookworm/blob/master/project" 
+	"base-url": "https://github.com/joegreen88/bookworm/blob/master/project/pub"
 }

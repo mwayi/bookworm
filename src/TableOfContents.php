@@ -19,11 +19,16 @@ class TableOfContents
 	 */
 	protected $minOffset;
 
-	/**
-	 * Constructor.
-	 *
-	 * @return void
-	 */
+    /**
+     * @var array
+     */
+    protected $headers;
+
+    /**
+     * TableOfContents constructor.
+     *
+     * @param $content
+     */
 	public function __construct($content)
 	{
 		$this->setContent($content);
@@ -32,7 +37,7 @@ class TableOfContents
 	/**
 	 * Process the script
 	 *
-	 * @return void
+	 * @return $this
 	 */
 	public function compile()
 	{	
@@ -88,12 +93,11 @@ class TableOfContents
 		return ltrim($str, '# ');
 	}
 
-	/**
-	 * Get padding
-	 *
-	 * @param integer $level
-	 * @return string
-	 */
+    /**
+     * @param $str
+     *
+     * @return mixed|string
+     */
 	public function getSlug($str)
 	{
 		$slug = Str::slug($str);
@@ -118,14 +122,13 @@ class TableOfContents
 	 */
 	public function getPadding($level)
 	{
-		return str_pad('', 4 * $level, ' ');;
+		return str_pad('', 4 * $level, ' ');
 	}
 
 	/**
 	 * Get contents.
 	 *
-	 * @param string $content
-	 * @return void
+     * @return array
 	 */
 	public function getLines()
 	{
@@ -136,6 +139,7 @@ class TableOfContents
 	 * Get contents.
 	 *
 	 * @param string $content
+     *
 	 * @return void
 	 */
 	public function setContent($content)

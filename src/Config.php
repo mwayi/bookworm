@@ -3,101 +3,101 @@
 namespace Smrtr\Bookworm;
 
 use RuntimeException;
-use Illuminate\Filesystem\Filesystem as File;
 use Illuminate\Support\Arr;
+use Smrtr\Bookworm\DocumentStore\DocumentStoreInterface;
 
 class Config
 {
-	/**
-	 * @var string $src
-	 */
-	protected $src;
+    const CONFIG_TEMPLATES = 'templates';
+    const CONFIG_PUBLISHED = 'published';
+    const CONFIG_BASE_URL = 'base-url';
+    const CONFIG_FRONT_PAGE = 'front-page';
+    const CONFIG_DOCUMENTS = 'documents';
+    const CONFIG_DOCUMENTS_STORE = 'store';
 
 	/**
-	 * @var string $src
+	 * @var string $root The root directory containing the bookworm.json
 	 */
-	protected $configPath;
+	protected $root;
 
-	/**
+    /**
+     * @var string The file path of the bookworm.json
+     */
+    protected $configPath;
+
+    /**
 	 * @var array $configs
 	 */
 	protected $configs = [];
 
-	/**
-	 * @var Illuminate\Filesystem\Filesystem $file 
-	 */
-	protected $file;
+    /**
+     * @var DocumentStoreInterface
+     */
+    protected $documentStore;
 
-	/**
-	 * @var array $defaults
-	 */
-	protected $defaults = [
-		'templates' => 'templates', 
-		'src' => 'src',
-		'published' => 'published',
-		'baseurl' => null,
-		'front-page' => 'README.md'
-	];
+    /**
+     * @return array
+     */
+    public static function getDefaultConfigs()
+    {
+        return [
+            static::CONFIG_TEMPLATES => 'templates',
+            static::CONFIG_PUBLISHED => 'published',
+            static::CONFIG_BASE_URL => null,
+            static::CONFIG_FRONT_PAGE => 'README.md',
+            static::CONFIG_DOCUMENTS => [
+                static::CONFIG_DOCUMENTS_STORE => 'files'
+            ],
+        ];
+    }
 
-	/**
-	 * Constructor.
-	 *
-	 * @return void
-	 */
-	public function __construct($src)
+	public function __construct($root)
 	{
-		$this->file = new File;	
-		$this->src = $src;
+		$this->root = $root;
 		$this->checkProjectExists();
 		$this->checkConfigExists();
 		$this->initialiseConfigs();
+        $this->loadDocumentStore();
 		$this->checkDirectoriesExists();
 
 	}
 
-	/**
-	 * Initialise configs
-	 *
-	 * @return void
-	 */
-	protected function initialiseConfigs()
-	{
-		if(($content = file_get_contents($this->configPath))) {
-			$this->config = array_merge($this->defaults, (array)json_decode($content));
-		}
+	protected function loadDocumentStore()
+    {
+        $documentStoreClass = sprintf(
+            'Smrtr\\Bookworm\\DocumentStore\\%sDocumentStore',
+            ucfirst(strtolower($documentStoreName = $this->getConfig('documents.store')))
+        );
 
-		return $this;
-	}
+        if (!is_subclass_of($documentStoreClass, DocumentStoreInterface::class)) {
+            throw new RuntimeException(sprintf('Document store \'%s\' is not implemented', $documentStoreName));
+        }
 
-	/**
-	 * Check project exists.
-	 *
-	 * @return void
-	 *
-	 * @throws RuntimeException
-	 */
+        $this->documentStore = new $documentStoreClass($this);
+    }
+
 	protected function checkProjectExists()
 	{
-		if(! is_dir($this->src)) {
-			throw new RuntimeException("Project '{$this->src}' does not exist.");
+		if (!is_dir($this->root)) {
+			throw new RuntimeException("Project '{$this->root}' does not exist.");
 		}
 
-		$this->src = realpath($this->src);
+		$this->root = realpath($this->root);
 	}
 
-	/**
-	 * Check config exists.
-	 *
-	 * @return void
-	 *
-	 * @throws RuntimeException
-	 */
 	protected function checkConfigExists()
 	{
-		if(! file_exists($this->configPath = $this->src . '/bookworm.json')) {
+		if(! file_exists($this->configPath = $this->root . '/bookworm.json')) {
 			throw new RuntimeException("A bookworm config must exist.");
 		}
 	}
+
+    protected function initialiseConfigs()
+    {
+        if(($content = file_get_contents($this->configPath))) {
+            $this->configs = array_merge(static::getDefaultConfigs(), json_decode($content, true));
+        }
+    }
 
 	/**
 	 * Check directories exist.
@@ -130,7 +130,7 @@ class Config
 	 */
 	public function rootPath($extra = null)
 	{
-		return $this->src . '/' . ($extra? ltrim($extra, '/'): null);
+		return $this->root . '/' . ($extra ? ltrim($extra, '/') : null);
 	}
 
 	/**
@@ -138,21 +138,12 @@ class Config
 	 *
 	 * @param  string $config
 	 * @param  mixed  $default
-	 * @return void
+	 *
+     * @return mixed
 	 */
 	public function getConfig($config, $default = null)
 	{
-		return Arr::get($this->config, $config, $default);
-	}
-
-	/**
-	 * Get source.
-	 *
-	 * @return string
-	 */
-	public function getSourceDirectory()
-	{
-		return $this->rootPath($this->getConfig('src'));
+		return Arr::get($this->configs, $config, $default);
 	}
 
 	/**
@@ -174,4 +165,12 @@ class Config
 	{
 		return $this->rootPath($this->getConfig('published'));
 	}
+
+    /**
+     * @return DocumentStoreInterface
+     */
+    public function getDocumentStore()
+    {
+        return $this->documentStore;
+    }
 }
